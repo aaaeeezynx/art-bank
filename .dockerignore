@@ -1,0 +1,30 @@
+# Docker 建置時排除的檔案/目錄
+node_modules
+.pnpm-store
+dist
+_docx_analysis
+.manus-logs
+.git
+
+# 環境變數檔（避免洩漏密鑰，由 docker-compose 注入）
+.env
+.env.docker.test
+
+# 開發測試檔案
+*.docx
+!server/templates/*.docx
+*.pdf
+cookies.txt
+list-body.json
+login-body.json
+analyze-output.txt
+vite.config.ts.bak
+
+# Docker 自身（避免循環）
+Dockerfile
+docker-compose.yml
+docker/
+
+# 作業系統檔案
+.DS_Store
+Thumbs.db

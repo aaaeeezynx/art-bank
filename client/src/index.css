@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* ── 典雅精緻色彩系統 ── */
+  --color-background: oklch(0.98 0.005 60);
+  --color-foreground: oklch(0.18 0.015 50);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.18 0.015 50);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.18 0.015 50);
+  --color-primary: oklch(0.32 0.04 45);
+  --color-primary-foreground: oklch(0.97 0.005 60);
+  --color-secondary: oklch(0.92 0.015 55);
+  --color-secondary-foreground: oklch(0.28 0.03 45);
+  --color-muted: oklch(0.94 0.01 55);
+  --color-muted-foreground: oklch(0.52 0.02 50);
+  --color-accent: oklch(0.88 0.04 60);
+  --color-accent-foreground: oklch(0.25 0.04 45);
+  --color-destructive: oklch(0.55 0.18 25);
+  --color-destructive-foreground: oklch(0.98 0.005 60);
+  --color-border: oklch(0.88 0.01 55);
+  --color-input: oklch(0.88 0.01 55);
+  --color-ring: oklch(0.55 0.06 45);
+  --color-chart-1: oklch(0.55 0.12 45);
+  --color-chart-2: oklch(0.62 0.1 200);
+  --color-chart-3: oklch(0.68 0.1 145);
+  --color-chart-4: oklch(0.65 0.12 30);
+  --color-chart-5: oklch(0.58 0.1 280);
+  --radius: 0.375rem;
+
+  /* ── 狀態顏色 ── */
+  --color-status-in: oklch(0.55 0.12 145);       /* 在庫 - 深綠 */
+  --color-status-out: oklch(0.52 0.14 25);        /* 出庫 - 磚紅 */
+  --color-status-temp: oklch(0.58 0.12 200);      /* 暫放 - 藍灰 */
+  --color-status-loan: oklch(0.58 0.12 280);      /* 借展 - 紫 */
+  --color-status-conserve: oklch(0.62 0.12 60);   /* 修護 - 琥珀 */
+
+  /* ── 字型 ── */
+  --font-serif: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif;
+  --font-sans: 'Inter', 'Noto Serif TC', system-ui, sans-serif;
+  --font-display: 'Cormorant Garamond', 'Noto Serif TC', Georgia, serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── 精緻捲軸 ── */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.78 0.02 50);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.62 0.04 45);
+  }
+}
+
+/* ── 容器 ── */
+.container {
+  @apply mx-auto px-4 sm:px-6;
+  max-width: 1280px;
+}
+
+/* ── 彈性盒預設 ── */
+.flex {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ── 狀態標籤 ── */
+.status-badge {
+  @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  font-family: var(--font-sans);
+  letter-spacing: 0.04em;
+}
+
+.status-在庫 {
+  background: oklch(0.93 0.06 145 / 0.2);
+  color: oklch(0.38 0.1 145);
+  border: 1px solid oklch(0.75 0.08 145 / 0.4);
+}
+
+.status-出庫 {
+  background: oklch(0.93 0.06 25 / 0.15);
+  color: oklch(0.42 0.12 25);
+  border: 1px solid oklch(0.75 0.08 25 / 0.4);
+}
+
+.status-暫放 {
+  background: oklch(0.93 0.05 200 / 0.2);
+  color: oklch(0.4 0.1 200);
+  border: 1px solid oklch(0.75 0.06 200 / 0.4);
+}
+
+.status-借展 {
+  background: oklch(0.93 0.05 280 / 0.2);
+  color: oklch(0.42 0.1 280);
+  border: 1px solid oklch(0.75 0.06 280 / 0.4);
+}
+
+.status-修護 {
+  background: oklch(0.95 0.06 60 / 0.25);
+  color: oklch(0.44 0.1 50);
+  border: 1px solid oklch(0.78 0.08 60 / 0.4);
+}
+
+/* ── 典雅卡片 ── */
+.elegant-card {
+  @apply bg-card rounded-lg border border-border/60 shadow-sm;
+  transition: box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.elegant-card:hover {
+  box-shadow: 0 4px 20px oklch(0.18 0.015 50 / 0.08);
+}
+
+/* ── 頁面標題 ── */
+.page-title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: oklch(0.22 0.02 45);
+}
+
+/* ── 分隔線裝飾 ── */
+.ornament-divider {
+  @apply flex items-center gap-3 my-4;
+}
+.ornament-divider::before,
+.ornament-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, oklch(0.78 0.02 50), transparent);
+}
+
+/* ── 按鈕微互動 ── */
+button:active {
+  transform: scale(0.97);
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* ── 表單輸入精緻化 ── */
+input, textarea, select {
+  font-family: var(--font-sans);
+}
+
+/* ── 時間軸 ── */
+.timeline-item {
+  @apply relative pl-8;
+}
+.timeline-item::before {
+  content: '';
+  @apply absolute left-3 top-0 bottom-0 w-px bg-border;
+}
+.timeline-item:last-child::before {
+  display: none;
+}
+.timeline-dot {
+  @apply absolute left-0 w-6 h-6 rounded-full border-2 border-background flex items-center justify-center;
+  top: 2px;
+}
+
+/* ── 動畫 ── */
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in {
+    animation: fadeIn 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .slide-up {
+    animation: slideUp 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}

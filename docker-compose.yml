@@ -1,0 +1,60 @@
+# ============================================================
+# Art Bank - Docker Compose 一鍵部署
+# ============================================================
+# 使用方式：
+#   1. 啟動：docker compose up -d --build
+#   2. 查看狀態：docker compose ps
+#   3. 查看日誌：docker compose logs -f
+#   4. 停止：docker compose down
+#   5. 停止並清除資料：docker compose down -v
+# ============================================================
+
+services:
+  # ── MySQL 資料庫 ──────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: artbank-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: artbank123
+      MYSQL_DATABASE: artbank
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_0900_ai_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      # 資料持久化（容器刪除後資料仍保留）
+      - mysql_data:/var/lib/mysql
+      # 首次啟動時自動匯入測試資料（僅在資料目錄為空時執行）
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-partbank123"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # ── Art Bank 應用（前端 + 後端）──────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: artbank-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://root:artbank123@mysql:3306/artbank
+      JWT_SECRET: artbank-dev-secret-key-2026-please-change-in-production-7f3a9b
+      VITE_APP_ID: artbank-collection
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

@@ -338,17 +338,60 @@ export default function ArtworkEdit({ id }: { id: number }) {
           <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-0.5">Edit Artwork</p>
           <h1 className="page-title text-2xl">編輯藏品資料</h1>
         </div>
+        {/* 刪除作品按鈕 */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogTrigger asChild>
+            <Button type="button" variant="destructive" className="gap-2 ml-auto" disabled={deleteArtwork.isPending}>
+              <Trash2 className="w-4 h-4" />
+              {deleteArtwork.isPending ? "刪除中…" : "刪除作品"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>確認刪除作品？</AlertDialogTitle>
+              <AlertDialogDescription>
+                此操作無法復原。將一併刪除作品的所有照片、操作紀錄，並釋放其佔用的庫房架位。
+                <br /><br />
+                <span className="font-medium text-foreground">作品編號：</span>{artwork.artworkNo}
+                <br />
+                <span className="font-medium text-foreground">作品名稱：</span>{form.title || "（未提供）"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteArtwork.isPending}>取消</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleteArtwork.isPending}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteArtwork.isPending ? "刪除中…" : "確認刪除"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 作品編號 */}
+        {/* 作品編號 + 藏家自訂編號 */}
         <div className="elegant-card p-4 bg-primary/5 border-primary/20">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-primary/70" />
-            <span className="text-xs text-muted-foreground tracking-wider">作品編號 Registered No.</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+            {/* 左：作品編號 */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-primary/70" />
+                <span className="text-xs text-muted-foreground tracking-wider">作品編號 Registered No.</span>
+              </div>
+              <p className="font-mono text-lg font-medium text-primary tracking-widest">{artwork.artworkNo}</p>
+              <p className="text-xs text-muted-foreground mt-1">狀態：{artwork.status}（編輯不會變更狀態與編號）</p>
+            </div>
+
+            {/* 右：藏家自訂編號 */}
+            <div className="space-y-1.5">
+              <Label htmlFor="customCode">藏家自訂編號 Custom Code（選填）</Label>
+              <Input id="customCode" value={form.customCode} onChange={setValue("customCode")} placeholder="如：C-2024-001（不會出現在匯出檔）" className="bg-background" />
+              <p className="text-xs text-muted-foreground">系統仍會自動產生作品編號，此欄位僅供內部辨識使用</p>
+            </div>
           </div>
-          <p className="font-mono text-lg font-medium text-primary tracking-widest">{artwork.artworkNo}</p>
-          <p className="text-xs text-muted-foreground mt-1">狀態：{artwork.status}（編輯不會變更狀態與編號）</p>
         </div>
 
         {/* A. 一般資料 General Data */}
@@ -389,13 +432,6 @@ export default function ArtworkEdit({ id }: { id: number }) {
             <div className="space-y-1.5">
               <Label htmlFor="collector">收藏家 Collector</Label>
               <Input id="collector" value={form.collector} onChange={setValue("collector")} placeholder="請輸入收藏家名稱" className="bg-background" />
-            </div>
-
-            {/* 藏家自訂編號 */}
-            <div className="space-y-1.5">
-              <Label htmlFor="customCode">藏家自訂編號 Custom Code（選填）</Label>
-              <Input id="customCode" value={form.customCode} onChange={setValue("customCode")} placeholder="如：C-2024-001（不會出現在匯出檔）" className="bg-background" />
-              <p className="text-xs text-muted-foreground">系統仍會自動產生作品編號，此欄位僅供內部辨識使用</p>
             </div>
 
             {/* 作品年代 */}
@@ -633,45 +669,11 @@ export default function ArtworkEdit({ id }: { id: number }) {
         </section>
 
         {/* 提交 */}
-        <div className="flex items-center justify-between gap-3">
-          {/* 刪除作品 */}
-          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <AlertDialogTrigger asChild>
-              <Button type="button" variant="destructive" className="gap-2" disabled={deleteArtwork.isPending}>
-                <Trash2 className="w-4 h-4" />
-                {deleteArtwork.isPending ? "刪除中…" : "刪除作品"}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>確認刪除作品？</AlertDialogTitle>
-                <AlertDialogDescription>
-                  此操作無法復原。將一併刪除作品的所有照片、操作紀錄，並釋放其佔用的庫房架位。
-                  <br /><br />
-                  <span className="font-medium text-foreground">作品編號：</span>{artwork.artworkNo}
-                  <br />
-                  <span className="font-medium text-foreground">作品名稱：</span>{form.title || "（未提供）"}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={deleteArtwork.isPending}>取消</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  disabled={deleteArtwork.isPending}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {deleteArtwork.isPending ? "刪除中…" : "確認刪除"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={() => setLocation(`/artworks/${id}`)}>取消</Button>
-            <Button type="submit" disabled={updateArtwork.isPending} className="min-w-24">
-              {updateArtwork.isPending ? "更新中…" : "儲存變更"}
-            </Button>
-          </div>
+        <div className="flex gap-3 justify-end">
+          <Button type="button" variant="outline" onClick={() => setLocation(`/artworks/${id}`)}>取消</Button>
+          <Button type="submit" disabled={updateArtwork.isPending} className="min-w-24">
+            {updateArtwork.isPending ? "更新中…" : "儲存變更"}
+          </Button>
         </div>
       </form>
     </div>

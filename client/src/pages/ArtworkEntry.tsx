@@ -409,14 +409,26 @@ export default function ArtworkEntry() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 作品編號預覽 */}
+        {/* 作品編號預覽 + 藏家自訂編號 */}
         <div className="elegant-card p-4 bg-primary/5 border-primary/20">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-primary/70" />
-            <span className="text-xs text-muted-foreground tracking-wider">系統自動產生作品編號 Registered No.</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+            {/* 左：系統自動產生作品編號 */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-primary/70" />
+                <span className="text-xs text-muted-foreground tracking-wider">系統自動產生作品編號 Registered No.</span>
+              </div>
+              <p className="font-mono text-lg font-medium text-primary tracking-widest">{artworkNoPreview}</p>
+              <p className="text-xs text-muted-foreground mt-1">格式：藝術銀行縮寫 - 媒材代碼 - 入庫日期 - 流水號</p>
+            </div>
+
+            {/* 右：藏家自訂編號 */}
+            <div className="space-y-1.5">
+              <Label htmlFor="customCode">藏家自訂編號 Custom Code（選填）</Label>
+              <Input id="customCode" value={form.customCode} onChange={setValue("customCode")} placeholder="如：C-2024-001（不會出現在匯出檔）" className="bg-background" />
+              <p className="text-xs text-muted-foreground">系統仍會自動產生作品編號，此欄位僅供內部辨識使用</p>
+            </div>
           </div>
-          <p className="font-mono text-lg font-medium text-primary tracking-widest">{artworkNoPreview}</p>
-          <p className="text-xs text-muted-foreground mt-1">格式：藝術銀行縮寫 - 媒材代碼 - 入庫日期 - 流水號</p>
         </div>
 
         {/* A. 一般資料 General Data */}
@@ -457,13 +469,6 @@ export default function ArtworkEntry() {
             <div className="space-y-1.5">
               <Label htmlFor="collector">收藏家 Collector</Label>
               <Input id="collector" value={form.collector} onChange={setValue("collector")} placeholder="請輸入收藏家名稱" className="bg-background" />
-            </div>
-
-            {/* 藏家自訂編號 */}
-            <div className="space-y-1.5">
-              <Label htmlFor="customCode">藏家自訂編號 Custom Code（選填）</Label>
-              <Input id="customCode" value={form.customCode} onChange={setValue("customCode")} placeholder="如：C-2024-001（不會出現在匯出檔）" className="bg-background" />
-              <p className="text-xs text-muted-foreground">系統仍會自動產生作品編號，此欄位僅供內部辨識使用</p>
             </div>
 
             {/* 作品年代 */}

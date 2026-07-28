@@ -12,10 +12,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, Sparkles, MapPin, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, Sparkles, MapPin, ImagePlus, X, Trash2 } from "lucide-react";
 import {
   MEDIUM_OPTIONS,
   CATEGORY_OPTIONS,
@@ -55,6 +66,7 @@ export default function ArtworkEdit({ id }: { id: number }) {
     titleNotProvided: false,
     artist: "",
     collector: "",
+    customCode: "",
     medium: "",
     entryDate: new Date().toISOString().split("T")[0] ?? "",
     era: "",
@@ -99,6 +111,7 @@ export default function ArtworkEdit({ id }: { id: number }) {
       titleNotProvided: !!artwork.titleNotProvided,
       artist: artwork.artist ?? "",
       collector: artwork.collector ?? "",
+      customCode: artwork.customCode ?? "",
       medium: artwork.medium ?? "",
       entryDate: toDateInput(artwork.entryDate) || new Date().toISOString().split("T")[0]!,
       era: toDateInput(artwork.era),
@@ -144,6 +157,24 @@ export default function ArtworkEdit({ id }: { id: number }) {
       toast.error(`更新失敗：${err.message}`);
     },
   });
+
+  const deleteArtwork = trpc.artwork.delete.useMutation({
+    onSuccess: () => {
+      toast.success("作品已刪除");
+      utils.artwork.list.invalidate();
+      setLocation("/artworks");
+    },
+    onError: (err) => {
+      toast.error(`刪除失敗：${err.message}`);
+    },
+  });
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleDelete = () => {
+    deleteArtwork.mutate({ id });
+    setShowDeleteDialog(false);
+  };
 
   const selectedLocation = useMemo(
     () => locations?.find((l) => l.id === Number(form.locationId)),
@@ -242,7 +273,8 @@ export default function ArtworkEdit({ id }: { id: number }) {
       titleNotProvided: form.titleNotProvided,
       artist: form.artist || undefined,
       collector: form.collector || undefined,
-      medium: form.medium || undefined,
+      customCode: form.customCode || undefined,
+      medium: (form.medium as "canvas" | "paper" | "wood" | "metal" | "textile" | "mixed" | "") || undefined,
       entryDate: form.entryDate || undefined,
       era: form.era || undefined,
       registrar: form.registrar || undefined,
@@ -357,6 +389,13 @@ export default function ArtworkEdit({ id }: { id: number }) {
             <div className="space-y-1.5">
               <Label htmlFor="collector">收藏家 Collector</Label>
               <Input id="collector" value={form.collector} onChange={setValue("collector")} placeholder="請輸入收藏家名稱" className="bg-background" />
+            </div>
+
+            {/* 藏家自訂編號 */}
+            <div className="space-y-1.5">
+              <Label htmlFor="customCode">藏家自訂編號 Custom Code（選填）</Label>
+              <Input id="customCode" value={form.customCode} onChange={setValue("customCode")} placeholder="如：C-2024-001（不會出現在匯出檔）" className="bg-background" />
+              <p className="text-xs text-muted-foreground">系統仍會自動產生作品編號，此欄位僅供內部辨識使用</p>
             </div>
 
             {/* 作品年代 */}
@@ -594,11 +633,45 @@ export default function ArtworkEdit({ id }: { id: number }) {
         </section>
 
         {/* 提交 */}
-        <div className="flex gap-3 justify-end">
-          <Button type="button" variant="outline" onClick={() => setLocation(`/artworks/${id}`)}>取消</Button>
-          <Button type="submit" disabled={updateArtwork.isPending} className="min-w-24">
-            {updateArtwork.isPending ? "更新中…" : "儲存變更"}
-          </Button>
+        <div className="flex items-center justify-between gap-3">
+          {/* 刪除作品 */}
+          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="destructive" className="gap-2" disabled={deleteArtwork.isPending}>
+                <Trash2 className="w-4 h-4" />
+                {deleteArtwork.isPending ? "刪除中…" : "刪除作品"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>確認刪除作品？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  此操作無法復原。將一併刪除作品的所有照片、操作紀錄，並釋放其佔用的庫房架位。
+                  <br /><br />
+                  <span className="font-medium text-foreground">作品編號：</span>{artwork.artworkNo}
+                  <br />
+                  <span className="font-medium text-foreground">作品名稱：</span>{form.title || "（未提供）"}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleteArtwork.isPending}>取消</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  disabled={deleteArtwork.isPending}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleteArtwork.isPending ? "刪除中…" : "確認刪除"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={() => setLocation(`/artworks/${id}`)}>取消</Button>
+            <Button type="submit" disabled={updateArtwork.isPending} className="min-w-24">
+              {updateArtwork.isPending ? "更新中…" : "儲存變更"}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

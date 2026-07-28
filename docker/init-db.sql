@@ -82,6 +82,7 @@ DROP TABLE IF EXISTS `artworks`;
 CREATE TABLE `artworks` (
   `id` int NOT NULL AUTO_INCREMENT,
   `artworkNo` varchar(32) NOT NULL,
+  `customCode` varchar(64) DEFAULT NULL,
   `title` varchar(256) NOT NULL,
   `titleNotProvided` tinyint NOT NULL DEFAULT '0',
   `artist` varchar(128) NOT NULL,

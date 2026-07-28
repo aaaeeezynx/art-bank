@@ -13,7 +13,9 @@ import {
   createOperation,
   createPasswordUser,
   createStorageLocation,
+  deleteArtwork,
   deleteArtworkPhoto,
+  deleteStorageLocation,
   getArtworkById,
   getArtworkWithPhotos,
   getArtworks,
@@ -74,6 +76,10 @@ const storageRouter = router({
       const { id, ...data } = input;
       return updateStorageLocation(id, data);
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(({ input }) => deleteStorageLocation(input.id)),
 });
 
 // ── 作品路由 ──────────────────────────────────────────────────────────────────
@@ -101,6 +107,7 @@ const artworkRouter = router({
         titleNotProvided: z.boolean().optional(),
         artist: z.string().min(1),
         collector: z.string().optional(),
+        customCode: z.string().optional(),
         medium: z.enum(["canvas", "paper", "wood", "metal", "textile", "mixed"]),
         entryDate: z.string(),
         era: z.string().optional(),
@@ -142,6 +149,7 @@ const artworkRouter = router({
         titleNotProvided: input.titleNotProvided ? 1 : 0,
         artist: input.artist,
         collector: input.collector ?? null,
+        customCode: input.customCode ?? null,
         medium: input.medium,
         entryDate: input.entryDate as any,
         era: (input.era ?? null) as any,
@@ -209,6 +217,11 @@ const artworkRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(({ input }) => deleteArtworkPhoto(input.id)),
 
+  // 刪除作品（含照片、操作紀錄一併刪除，並釋放架位）
+  delete: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(({ input }) => deleteArtwork(input.id)),
+
   // 編輯作品資料（不含 status、artworkNo 等不可改欄位）— 全部欄位非必填
   update: protectedProcedure
     .input(
@@ -218,6 +231,7 @@ const artworkRouter = router({
         titleNotProvided: z.boolean().optional(),
         artist: z.string().optional(),
         collector: z.string().optional(),
+        customCode: z.string().optional(),
         medium: z.enum(["canvas", "paper", "wood", "metal", "textile", "mixed"]).optional(),
         entryDate: z.string().optional(),
         era: z.string().optional(),
@@ -259,6 +273,7 @@ const artworkRouter = router({
         titleNotProvided: input.titleNotProvided ? 1 : 0,
         artist: input.artist,
         collector: input.collector ?? null,
+        customCode: input.customCode ?? null,
         medium: input.medium,
         entryDate: input.entryDate as any,
         era: (input.era ?? null) as any,

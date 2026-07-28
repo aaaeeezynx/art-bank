@@ -226,6 +226,7 @@ export default function ArtworkEntry() {
     titleNotProvided: false,
     artist: "",
     collector: "",
+    customCode: "",
     medium: "",
     entryDate: new Date().toISOString().split("T")[0] ?? "",
     era: "",
@@ -365,6 +366,7 @@ export default function ArtworkEntry() {
       titleNotProvided: form.titleNotProvided,
       artist: form.artist,
       collector: form.collector || undefined,
+      customCode: form.customCode || undefined,
       medium: form.medium as any,
       entryDate: form.entryDate,
       era: form.era || undefined,
@@ -455,6 +457,13 @@ export default function ArtworkEntry() {
             <div className="space-y-1.5">
               <Label htmlFor="collector">收藏家 Collector</Label>
               <Input id="collector" value={form.collector} onChange={setValue("collector")} placeholder="請輸入收藏家名稱" className="bg-background" />
+            </div>
+
+            {/* 藏家自訂編號 */}
+            <div className="space-y-1.5">
+              <Label htmlFor="customCode">藏家自訂編號 Custom Code（選填）</Label>
+              <Input id="customCode" value={form.customCode} onChange={setValue("customCode")} placeholder="如：C-2024-001（不會出現在匯出檔）" className="bg-background" />
+              <p className="text-xs text-muted-foreground">系統仍會自動產生作品編號，此欄位僅供內部辨識使用</p>
             </div>
 
             {/* 作品年代 */}

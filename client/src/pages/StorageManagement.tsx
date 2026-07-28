@@ -10,10 +10,20 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Plus, Warehouse, MapPin, Pencil, CheckCircle, Circle } from "lucide-react";
+import { Plus, Warehouse, MapPin, Pencil, Trash2, CheckCircle, Circle } from "lucide-react";
 
 type LocationForm = {
   warehouseNo: string;
@@ -64,7 +74,24 @@ export default function StorageManagement() {
     onError: (err) => toast.error(`更新失敗：${err.message}`),
   });
 
+  const deleteLocation = trpc.storage.delete.useMutation({
+    onSuccess: () => {
+      toast.success("架位已刪除");
+      utils.storage.list.invalidate();
+    },
+    onError: (err) => toast.error(`刪除失敗：${err.message}`),
+  });
+
   type LocationItem = NonNullable<typeof locations>[number];
+
+  const [deleteTarget, setDeleteTarget] = useState<LocationItem | null>(null);
+
+  const handleDelete = () => {
+    if (!deleteTarget) return;
+    deleteLocation.mutate({ id: deleteTarget.id });
+    setDeleteTarget(null);
+  };
+
   const handleOpen = (loc?: LocationItem) => {
     if (loc) {
       setEditId(loc.id);
@@ -201,8 +228,16 @@ export default function StorageManagement() {
                     <button
                       onClick={() => handleOpen(loc as any)}
                       className="w-7 h-7 rounded flex items-center justify-center hover:bg-accent transition-colors text-muted-foreground"
+                      title="編輯"
                     >
                       <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(loc as any)}
+                      className="w-7 h-7 rounded flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
+                      title="刪除"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
@@ -297,6 +332,40 @@ export default function StorageManagement() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* 刪除確認對話框 */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>確認刪除此庫房架位？</AlertDialogTitle>
+            <AlertDialogDescription>
+              此操作無法復原。
+              {deleteTarget?.isOccupied === 1 ? (
+                <span className="block mt-2 text-destructive font-medium">
+                  此架位使用中，請先將佔用此架位的作品移出後再刪除。
+                </span>
+              ) : (
+                <>
+                  <br /><br />
+                  <span className="font-medium text-foreground">位置編碼：</span>{deleteTarget?.locationCode}
+                  <br />
+                  <span className="font-medium text-foreground">位置：</span>{deleteTarget?.warehouseNo} 號庫房・{deleteTarget?.zone} 區・第 {deleteTarget?.shelfNo} 架・第 {deleteTarget?.levelNo} 層
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLocation.isPending}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteLocation.isPending || deleteTarget?.isOccupied === 1}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteLocation.isPending ? "刪除中…" : "確認刪除"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

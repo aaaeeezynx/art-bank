@@ -201,6 +201,22 @@ export async function updateStorageLocation(id: number, data: Partial<InsertStor
   return getStorageLocationById(id);
 }
 
+/**
+ * 刪除庫房架位：使用中的架位不可刪除
+ * @param id 架位 ID
+ */
+export async function deleteStorageLocation(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const location = await getStorageLocationById(id);
+  if (!location) throw new Error("架位不存在");
+  if (location.isOccupied === 1) {
+    throw new Error("此架位使用中，請先將作品移出再刪除");
+  }
+  await db.delete(storageLocations).where(eq(storageLocations.id, id));
+  return location;
+}
+
 // ── 作品 ──────────────────────────────────────────────────────────────────────
 export async function getArtworks(filters?: {
   search?: string;
@@ -341,6 +357,31 @@ export async function updateArtwork(id: number, data: Partial<InsertArtwork>) {
   if (!db) throw new Error("DB not available");
   await db.update(artworks).set(data).where(eq(artworks.id, id));
   return getArtworkById(id);
+}
+
+/**
+ * 刪除作品：一併刪除照片與操作紀錄，並釋放佔用的架位
+ * @param artworkId 作品 ID
+ */
+export async function deleteArtwork(artworkId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const artwork = await getArtworkById(artworkId);
+  if (!artwork) throw new Error("作品不存在");
+
+  // 釋放佔用的架位
+  if (artwork.locationId) {
+    await db.update(storageLocations)
+      .set({ isOccupied: 0 })
+      .where(eq(storageLocations.id, artwork.locationId));
+  }
+  // 刪除照片
+  await db.delete(artworkPhotos).where(eq(artworkPhotos.artworkId, artworkId));
+  // 刪除操作紀錄
+  await db.delete(artworkOperations).where(eq(artworkOperations.artworkId, artworkId));
+  // 刪除作品本體
+  await db.delete(artworks).where(eq(artworks.id, artworkId));
+  return artwork;
 }
 
 // ── 操作紀錄 ──────────────────────────────────────────────────────────────────

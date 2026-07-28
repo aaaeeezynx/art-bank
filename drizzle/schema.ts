@@ -81,6 +81,7 @@ export type InsertStorageLocation = typeof storageLocations.$inferInsert;
 export const artworks = mysqlTable("artworks", {
   id: int("id").autoincrement().primaryKey(),
   artworkNo: varchar("artworkNo", { length: 32 }).notNull().unique(), // AC-CW-20260520-001
+  customCode: varchar("customCode", { length: 64 }),                   // 藏家自訂編號（選填，不匯出）
   title: varchar("title", { length: 256 }).notNull(),
   titleNotProvided: tinyint("titleNotProvided").default(0).notNull(), // 1=未提供
   artist: varchar("artist", { length: 128 }).notNull(),

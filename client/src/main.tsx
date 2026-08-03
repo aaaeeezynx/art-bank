@@ -49,6 +49,8 @@ const trpcClient = trpc.createClient({
         // (Safari ITP / private browsing / WebView), the runtime mirrors the
         // session into sessionStorage so we can forward it as a Bearer token.
         // The regular OAuth cookie flow keeps working and takes priority server-side.
+        // 固定使用非 streaming 回應：streaming 模式下 tRPC 會在 procedure
+        // 執行前 flush header，導致 ctx.res.cookie() 設定 session cookie 失敗。
         try {
           const raw = sessionStorage.getItem("manus-cookie");
           if (raw) {
@@ -56,13 +58,13 @@ const trpcClient = trpc.createClient({
             const pair = raw.split(";").find(s => s.trim().startsWith(prefix));
             const token = pair?.trim().slice(prefix.length);
             if (token) {
-              return { Authorization: `Bearer ${token}` };
+              return { Authorization: `Bearer ${token}`, "trpc-accept": "application/json" };
             }
           }
         } catch {
           // sessionStorage unavailable
         }
-        return {};
+        return { "trpc-accept": "application/json" };
       },
       fetch(input, init) {
         return globalThis.fetch(input, {

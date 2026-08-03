@@ -500,13 +500,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "levelNo": {
-          "name": "levelNo",
-          "type": "varchar(4)",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "locationCode": {
           "name": "locationCode",
           "type": "varchar(32)",
@@ -520,14 +513,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "isOccupied": {
-          "name": "isOccupied",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
         },
         "createdAt": {
           "name": "createdAt",
@@ -557,7 +542,14 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "storage_locations_locationCode_unique": {
+          "name": "storage_locations_locationCode_unique",
+          "columns": [
+            "locationCode"
+          ]
+        }
+      },
       "checkConstraint": {}
     },
     "users": {

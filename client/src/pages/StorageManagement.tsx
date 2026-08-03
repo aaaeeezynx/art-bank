@@ -2,7 +2,6 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +22,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Plus, Warehouse, MapPin, Pencil, Trash2, CheckCircle, Circle } from "lucide-react";
+import { Plus, Warehouse, MapPin, Pencil, Trash2 } from "lucide-react";
 
 type LocationForm = {
   warehouseNo: string;
   zone: string;
   shelfNo: string;
-  levelNo: string;
   description: string;
 };
 
@@ -37,15 +35,13 @@ const EMPTY_FORM: LocationForm = {
   warehouseNo: "",
   zone: "",
   shelfNo: "",
-  levelNo: "",
   description: "",
 };
 
 function buildPreviewCode(f: LocationForm): string {
-  if (!f.warehouseNo || !f.zone || !f.shelfNo || !f.levelNo) return "???-?-??-??";
+  if (!f.warehouseNo || !f.zone || !f.shelfNo) return "???-?-??";
   const shelf = f.shelfNo.padStart(2, "0");
-  const level = f.levelNo.padStart(2, "0");
-  return `${f.warehouseNo}-${f.zone.toUpperCase()}-${shelf}-${level}`;
+  return `${f.warehouseNo}-${f.zone.toUpperCase()}-${shelf}`;
 }
 
 export default function StorageManagement() {
@@ -99,7 +95,6 @@ export default function StorageManagement() {
         warehouseNo: loc.warehouseNo,
         zone: loc.zone,
         shelfNo: loc.shelfNo,
-        levelNo: loc.levelNo,
         description: loc.description ?? "",
       });
     } else {
@@ -111,7 +106,7 @@ export default function StorageManagement() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.warehouseNo || !form.zone || !form.shelfNo || !form.levelNo) {
+    if (!form.warehouseNo || !form.zone || !form.shelfNo) {
       toast.error("請填寫所有必填欄位");
       return;
     }
@@ -151,7 +146,7 @@ export default function StorageManagement() {
 
       {/* 統計 */}
       {!isLoading && locations && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="elegant-card p-4">
             <p className="text-xs text-muted-foreground">架位總數</p>
             <p className="text-2xl font-light mt-1" style={{ fontFamily: "var(--font-serif)" }}>
@@ -159,21 +154,15 @@ export default function StorageManagement() {
             </p>
           </div>
           <div className="elegant-card p-4">
-            <p className="text-xs text-muted-foreground">使用中</p>
-            <p className="text-2xl font-light mt-1 text-amber-600" style={{ fontFamily: "var(--font-serif)" }}>
-              {locations.filter((l) => l.isOccupied === 1).length}
-            </p>
-          </div>
-          <div className="elegant-card p-4">
-            <p className="text-xs text-muted-foreground">空置</p>
-            <p className="text-2xl font-light mt-1 text-emerald-600" style={{ fontFamily: "var(--font-serif)" }}>
-              {locations.filter((l) => l.isOccupied === 0).length}
-            </p>
-          </div>
-          <div className="elegant-card p-4">
             <p className="text-xs text-muted-foreground">庫房數</p>
             <p className="text-2xl font-light mt-1" style={{ fontFamily: "var(--font-serif)" }}>
               {Object.keys(grouped).length}
+            </p>
+          </div>
+          <div className="elegant-card p-4">
+            <p className="text-xs text-muted-foreground">分區數</p>
+            <p className="text-2xl font-light mt-1" style={{ fontFamily: "var(--font-serif)" }}>
+              {new Set(locations.map((l) => l.warehouseNo + "-" + l.zone)).size}
             </p>
           </div>
         </div>
@@ -208,20 +197,13 @@ export default function StorageManagement() {
                     key={loc!.id}
                     className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors"
                   >
-                    {loc!.isOccupied === 1 ? (
-                      <CheckCircle className="w-4 h-4 text-amber-500 shrink-0" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-emerald-500 shrink-0" />
-                    )}
+                    <MapPin className="w-4 h-4 text-primary shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-sm font-medium">{loc!.locationCode}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded ${loc!.isOccupied === 1 ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>
-                          {loc!.isOccupied === 1 ? "使用中" : "空置"}
-                        </span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {loc!.zone} 區・第 {loc!.shelfNo} 架・第 {loc!.levelNo} 層
+                        {loc!.zone} 區・第 {loc!.shelfNo} 架
                         {loc!.description && ` · ${loc!.description}`}
                       </p>
                     </div>
@@ -286,22 +268,12 @@ export default function StorageManagement() {
                   className="bg-background uppercase"
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 col-span-2">
                 <Label>層架編號 <span className="text-destructive">*</span></Label>
                 <Input
                   value={form.shelfNo}
                   onChange={set("shelfNo")}
                   placeholder="如：03"
-                  maxLength={4}
-                  className="bg-background"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>層號 <span className="text-destructive">*</span></Label>
-                <Input
-                  value={form.levelNo}
-                  onChange={set("levelNo")}
-                  placeholder="如：01"
                   maxLength={4}
                   className="bg-background"
                 />
@@ -340,25 +312,17 @@ export default function StorageManagement() {
             <AlertDialogTitle>確認刪除此庫房架位？</AlertDialogTitle>
             <AlertDialogDescription>
               此操作無法復原。
-              {deleteTarget?.isOccupied === 1 ? (
-                <span className="block mt-2 text-destructive font-medium">
-                  此架位使用中，請先將佔用此架位的作品移出後再刪除。
-                </span>
-              ) : (
-                <>
-                  <br /><br />
-                  <span className="font-medium text-foreground">位置編碼：</span>{deleteTarget?.locationCode}
-                  <br />
-                  <span className="font-medium text-foreground">位置：</span>{deleteTarget?.warehouseNo} 號庫房・{deleteTarget?.zone} 區・第 {deleteTarget?.shelfNo} 架・第 {deleteTarget?.levelNo} 層
-                </>
-              )}
+              <br /><br />
+              <span className="font-medium text-foreground">位置編碼：</span>{deleteTarget?.locationCode}
+              <br />
+              <span className="font-medium text-foreground">位置：</span>{deleteTarget?.warehouseNo} 號庫房・{deleteTarget?.zone} 區・第 {deleteTarget?.shelfNo} 架
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteLocation.isPending}>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteLocation.isPending || deleteTarget?.isOccupied === 1}
+              disabled={deleteLocation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteLocation.isPending ? "刪除中…" : "確認刪除"}

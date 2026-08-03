@@ -744,13 +744,14 @@ export async function generatePdf(artwork: ArtworkWithPhotos): Promise<Buffer> {
   const fs = await import("node:fs");
   const path = await import("node:path");
 
-  // 找中文字體：優先使用專案內建的標楷體（確保 Docker 容器可用）
+  // 找中文字體：優先使用專案內建的標楷體（確保 Docker 容器可用），其次系統內建 Noto Sans CJK（Docker 已安裝 fonts-noto-cjk）
   const bundledFont = path.join(process.cwd(), "assets", "fonts", "kaiu.ttf");
   const fontPaths = [
     bundledFont,
-    "C:\\Windows\\Fonts\\kaiu.ttf",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttf",
+    "C:\\Windows\\Fonts\\kaiu.ttf",
   ];
   let fontPath = "";
   for (const fp of fontPaths) {
@@ -1164,12 +1165,14 @@ export async function generateListPdf(items: ListPdfItem[]): Promise<Buffer> {
   const path = await import("node:path");
 
   // 載入中文字型
+  // 載入中文字型：優先專案內建標楷體，其次系統 Noto Sans CJK（Docker 已安裝 fonts-noto-cjk）
   const bundledFont = path.join(process.cwd(), "assets", "fonts", "kaiu.ttf");
   const fontPaths = [
     bundledFont,
-    "C:\\Windows\\Fonts\\kaiu.ttf",
     "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttf",
+    "C:\\Windows\\Fonts\\kaiu.ttf",
   ];
   let fontPath = "";
   for (const fp of fontPaths) {
@@ -1340,4 +1343,3 @@ export async function generateListPdf(items: ListPdfItem[]): Promise<Buffer> {
   });
   return buffer;
 }
-

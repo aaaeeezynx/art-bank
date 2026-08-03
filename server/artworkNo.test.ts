@@ -16,18 +16,18 @@ describe("作品編號產生邏輯", () => {
 
 describe("庫房位置編碼產生邏輯", () => {
   it("buildLocationCode 應正確組合位置編碼", () => {
-    expect(buildLocationCode("305", "A", "3", "1")).toBe("305-A-03-01");
-    expect(buildLocationCode("305", "A", "03", "01")).toBe("305-A-03-01");
-    expect(buildLocationCode("101", "B", "12", "5")).toBe("101-B-12-05");
+    expect(buildLocationCode("305", "A", "3")).toBe("305-A-03");
+    expect(buildLocationCode("305", "A", "03")).toBe("305-A-03");
+    expect(buildLocationCode("101", "B", "12")).toBe("101-B-12");
   });
 
   it("buildLocationCode 應將分區轉為大寫", () => {
-    expect(buildLocationCode("305", "a", "03", "01")).toBe("305-A-03-01");
-    expect(buildLocationCode("305", "b", "01", "02")).toBe("305-B-01-02");
+    expect(buildLocationCode("305", "a", "03")).toBe("305-A-03");
+    expect(buildLocationCode("305", "b", "01")).toBe("305-B-01");
   });
 
   it("buildLocationCode 應補零至兩位數", () => {
-    expect(buildLocationCode("305", "C", "1", "1")).toBe("305-C-01-01");
-    expect(buildLocationCode("305", "C", "9", "9")).toBe("305-C-09-09");
+    expect(buildLocationCode("305", "C", "1")).toBe("305-C-01");
+    expect(buildLocationCode("305", "C", "9")).toBe("305-C-09");
   });
 });

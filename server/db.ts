@@ -151,10 +151,9 @@ export async function generateArtworkNo(medium: MediumType, entryDate: string): 
 }
 
 // ── 庫房位置 ──────────────────────────────────────────────────────────────────
-export function buildLocationCode(warehouseNo: string, zone: string, shelfNo: string, levelNo: string): string {
+export function buildLocationCode(warehouseNo: string, zone: string, shelfNo: string): string {
   const shelf = shelfNo.padStart(2, "0");
-  const level = levelNo.padStart(2, "0");
-  return `${warehouseNo}-${zone.toUpperCase()}-${shelf}-${level}`;
+  return `${warehouseNo}-${zone.toUpperCase()}-${shelf}`;
 }
 
 export async function getStorageLocations() {
@@ -173,7 +172,7 @@ export async function getStorageLocationById(id: number) {
 export async function createStorageLocation(data: InsertStorageLocation) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  const locationCode = buildLocationCode(data.warehouseNo, data.zone, data.shelfNo, data.levelNo);
+  const locationCode = buildLocationCode(data.warehouseNo, data.zone, data.shelfNo);
   await db.insert(storageLocations).values({ ...data, locationCode });
   const result = await db
     .select()
@@ -187,14 +186,13 @@ export async function updateStorageLocation(id: number, data: Partial<InsertStor
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   const updateData: Partial<InsertStorageLocation> = { ...data };
-  if (data.warehouseNo || data.zone || data.shelfNo || data.levelNo) {
+  if (data.warehouseNo || data.zone || data.shelfNo) {
     const current = await getStorageLocationById(id);
     if (current) {
       const wNo = data.warehouseNo ?? current.warehouseNo;
       const z = data.zone ?? current.zone;
       const sh = data.shelfNo ?? current.shelfNo;
-      const lv = data.levelNo ?? current.levelNo;
-      updateData.locationCode = buildLocationCode(wNo, z, sh, lv);
+      updateData.locationCode = buildLocationCode(wNo, z, sh);
     }
   }
   await db.update(storageLocations).set(updateData).where(eq(storageLocations.id, id));
@@ -202,7 +200,17 @@ export async function updateStorageLocation(id: number, data: Partial<InsertStor
 }
 
 /**
- * 刪除庫房架位：使用中的架位不可刪除
+ * 取得指定架位上所有作品（用於檢查刪除/編輯時是否安全）
+ * @param locationId 架位 ID
+ */
+export async function getArtworksByLocationId(locationId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(artworks).where(eq(artworks.locationId, locationId));
+}
+
+/**
+ * 刪除庫房架位：若仍有作品指向此架位則不可刪除
  * @param id 架位 ID
  */
 export async function deleteStorageLocation(id: number) {
@@ -210,8 +218,10 @@ export async function deleteStorageLocation(id: number) {
   if (!db) throw new Error("DB not available");
   const location = await getStorageLocationById(id);
   if (!location) throw new Error("架位不存在");
-  if (location.isOccupied === 1) {
-    throw new Error("此架位使用中，請先將作品移出再刪除");
+
+  const occupying = await getArtworksByLocationId(id);
+  if (occupying.length > 0) {
+    throw new Error(`此架位仍有 ${occupying.length} 件作品關聯，請先將作品移出再刪除`);
   }
   await db.delete(storageLocations).where(eq(storageLocations.id, id));
   return location;
@@ -251,7 +261,7 @@ export async function getArtworks(filters?: {
   if (filters?.collector) {
     conditions.push(like(artworks.collector, `%${filters.collector}%`));
   }
-  // 庫房編號搜尋：只匹配 storage_locations.warehouseNo，不含 zone/shelf/level
+  // 庫房編號搜尋：只匹配 storage_locations.warehouseNo，不含 zone/shelf
   if (filters?.warehouseNo) {
     const whPattern = `%${filters.warehouseNo}%`;
     conditions.push(
@@ -360,7 +370,8 @@ export async function updateArtwork(id: number, data: Partial<InsertArtwork>) {
 }
 
 /**
- * 刪除作品：一併刪除照片與操作紀錄，並釋放佔用的架位
+ * 刪除作品：一併刪除照片與操作紀錄
+ * （架位為多對一關係，一個架位可被多件作品指定）
  * @param artworkId 作品 ID
  */
 export async function deleteArtwork(artworkId: number) {
@@ -369,12 +380,6 @@ export async function deleteArtwork(artworkId: number) {
   const artwork = await getArtworkById(artworkId);
   if (!artwork) throw new Error("作品不存在");
 
-  // 釋放佔用的架位
-  if (artwork.locationId) {
-    await db.update(storageLocations)
-      .set({ isOccupied: 0 })
-      .where(eq(storageLocations.id, artwork.locationId));
-  }
   // 刪除照片
   await db.delete(artworkPhotos).where(eq(artworkPhotos.artworkId, artworkId));
   // 刪除操作紀錄

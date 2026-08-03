@@ -66,7 +66,7 @@ describe("artwork.operate - 出庫操作", () => {
       title: "測試作品",
       artist: "測試作者",
       status: "在庫",
-      locationCode: "305-A-03-01",
+      locationCode: "305-A-03",
       locationId: 1,
       medium: "canvas",
       mediumCode: "CW",

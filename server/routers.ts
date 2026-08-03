@@ -45,7 +45,6 @@ const storageRouter = router({
         warehouseNo: z.string().min(1),
         zone: z.string().min(1).max(4),
         shelfNo: z.string().min(1).max(4),
-        levelNo: z.string().min(1).max(4),
         description: z.string().optional(),
       })
     )
@@ -54,10 +53,8 @@ const storageRouter = router({
         warehouseNo: input.warehouseNo,
         zone: input.zone,
         shelfNo: input.shelfNo,
-        levelNo: input.levelNo,
         locationCode: "",
         description: input.description ?? null,
-        isOccupied: 0,
       })
     ),
 
@@ -68,7 +65,6 @@ const storageRouter = router({
         warehouseNo: z.string().optional(),
         zone: z.string().optional(),
         shelfNo: z.string().optional(),
-        levelNo: z.string().optional(),
         description: z.string().optional(),
       })
     )
@@ -196,11 +192,6 @@ const artworkRouter = router({
           fromLocationCode: null,
         });
 
-        // 標記架位為使用中
-        if (input.locationId) {
-          await updateStorageLocation(input.locationId, { isOccupied: 1 });
-        }
-
         // 儲存作品照片與狀態照片
         if (input.photos && input.photos.length > 0) {
           await createArtworkPhotos(
@@ -217,7 +208,7 @@ const artworkRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(({ input }) => deleteArtworkPhoto(input.id)),
 
-  // 刪除作品（含照片、操作紀錄一併刪除，並釋放架位）
+  // 刪除作品（含照片、操作紀錄一併刪除）
   delete: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(({ input }) => deleteArtwork(input.id)),
@@ -359,19 +350,10 @@ const artworkRouter = router({
         if (input.toLocationId) {
           updateData.locationId = input.toLocationId;
           updateData.locationCode = input.toLocationCode ?? null;
-          // 釋放舊架位
-          if (artwork.locationId) {
-            await updateStorageLocation(artwork.locationId, { isOccupied: 0 });
-          }
-          // 佔用新架位
-          await updateStorageLocation(input.toLocationId, { isOccupied: 1 });
         }
       }
       if (input.operationType === "出庫" || input.operationType === "暫放" || input.operationType === "借展" || input.operationType === "修護") {
-        // 出庫時釋放架位
-        if (artwork.locationId) {
-          await updateStorageLocation(artwork.locationId, { isOccupied: 0 });
-        }
+        // 出庫時僅清除作品自身的架位關聯（架位為多對一，不釋放）
         updateData.locationId = null;
         updateData.locationCode = null;
       }

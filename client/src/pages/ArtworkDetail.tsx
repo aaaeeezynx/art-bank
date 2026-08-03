@@ -562,7 +562,7 @@ export default function ArtworkDetail({ id }: { id: number }) {
                     <SelectValue placeholder="選擇目標架位" />
                   </SelectTrigger>
                   <SelectContent>
-                    {locations?.filter((l) => l.isOccupied === 0).map((loc) => (
+                    {locations?.map((loc) => (
                       <SelectItem key={loc.id} value={String(loc.id)}>
                         <span className="font-mono mr-2">{loc.locationCode}</span>
                         {loc.description && <span className="text-muted-foreground text-xs">{loc.description}</span>}
@@ -573,7 +573,7 @@ export default function ArtworkDetail({ id }: { id: number }) {
                 {selectedLocation && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
-                    {selectedLocation.warehouseNo} 號庫房・{selectedLocation.zone} 區・第 {selectedLocation.shelfNo} 架・第 {selectedLocation.levelNo} 層
+                    {selectedLocation.warehouseNo} 號庫房・{selectedLocation.zone} 區・第 {selectedLocation.shelfNo} 架
                   </p>
                 )}
               </div>

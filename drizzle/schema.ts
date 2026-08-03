@@ -66,10 +66,8 @@ export const storageLocations = mysqlTable("storage_locations", {
   warehouseNo: varchar("warehouseNo", { length: 16 }).notNull(),   // 庫房編號，如 305
   zone: varchar("zone", { length: 4 }).notNull(),                   // 分區，如 A
   shelfNo: varchar("shelfNo", { length: 4 }).notNull(),             // 層架編號，如 03
-  levelNo: varchar("levelNo", { length: 4 }).notNull(),             // 層號，如 01
-  locationCode: varchar("locationCode", { length: 32 }).notNull(),  // 自動組合，如 305-A-03-01
+  locationCode: varchar("locationCode", { length: 32 }).notNull().unique(),  // 自動組合，如 305-A-03
   description: text("description"),
-  isOccupied: int("isOccupied").default(0).notNull(),               // 0=空置, 1=使用中
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

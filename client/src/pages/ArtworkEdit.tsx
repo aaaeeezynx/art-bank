@@ -80,7 +80,9 @@ export default function ArtworkEdit({ id }: { id: number }) {
     categoryOther: "",
     support: "",
     mediaDescription: "",
-    locationId: "",
+    selectedWarehouseNo: "",
+    selectedZone: "",
+    selectedShelfId: "",
     notes: "",
     conditionData: defaultConditionData,
   });
@@ -125,7 +127,9 @@ export default function ArtworkEdit({ id }: { id: number }) {
       categoryOther: artwork.categoryOther ?? "",
       support: artwork.support ?? "",
       mediaDescription: artwork.mediaDescription ?? "",
-      locationId: artwork.locationId ? String(artwork.locationId) : "",
+      selectedWarehouseNo: artwork.locationId ? (locations?.find((l) => l.id === artwork.locationId)?.warehouseNo ?? "") : "",
+      selectedZone: artwork.locationId ? (locations?.find((l) => l.id === artwork.locationId)?.zone ?? "") : "",
+      selectedShelfId: artwork.locationId ? String(artwork.locationId) : "",
       notes: artwork.notes ?? "",
       conditionData,
     });
@@ -145,7 +149,7 @@ export default function ArtworkEdit({ id }: { id: number }) {
       );
     }
     setInitialized(true);
-  }, [artwork, initialized]);
+  }, [artwork, locations, initialized]);
 
   const updateArtwork = trpc.artwork.update.useMutation({
     onSuccess: (data) => {
@@ -177,9 +181,32 @@ export default function ArtworkEdit({ id }: { id: number }) {
   };
 
   const selectedLocation = useMemo(
-    () => locations?.find((l) => l.id === Number(form.locationId)),
-    [locations, form.locationId]
+    () => locations?.find((l) => l.id === Number(form.selectedShelfId)),
+    [locations, form.selectedShelfId]
   );
+
+  // 三階下拉：可用的庫房編號 / 分區 / 層架編號（可重複選，無「已佔用」限制）
+  const warehouseOptions = useMemo(() => {
+    const set = new Set<string>();
+    locations?.forEach((l) => set.add(l.warehouseNo));
+    return Array.from(set).sort();
+  }, [locations]);
+
+  const zoneOptions = useMemo(() => {
+    if (!form.selectedWarehouseNo) return [];
+    const set = new Set<string>();
+    locations
+      ?.filter((l) => l.warehouseNo === form.selectedWarehouseNo)
+      .forEach((l) => set.add(l.zone));
+    return Array.from(set).sort();
+  }, [locations, form.selectedWarehouseNo]);
+
+  const shelfOptions = useMemo(() => {
+    if (!form.selectedWarehouseNo || !form.selectedZone) return [];
+    return locations
+      ?.filter((l) => l.warehouseNo === form.selectedWarehouseNo && l.zone === form.selectedZone)
+      .sort((a, b) => a.shelfNo.localeCompare(b.shelfNo)) ?? [];
+  }, [locations, form.selectedWarehouseNo, form.selectedZone]);
 
   const setValue = (key: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -288,7 +315,7 @@ export default function ArtworkEdit({ id }: { id: number }) {
       support: form.support || undefined,
       mediaDescription: form.mediaDescription || undefined,
       conditionData: form.conditionData,
-      locationId: form.locationId && form.locationId !== "none" ? Number(form.locationId) : undefined,
+      locationId: form.selectedShelfId && form.selectedShelfId !== "none" ? Number(form.selectedShelfId) : undefined,
       locationCode: selectedLocation?.locationCode,
       notes: form.notes || undefined,
       thumbnail: thumbnail || undefined,
@@ -350,7 +377,7 @@ export default function ArtworkEdit({ id }: { id: number }) {
             <AlertDialogHeader>
               <AlertDialogTitle>確認刪除作品？</AlertDialogTitle>
               <AlertDialogDescription>
-                此操作無法復原。將一併刪除作品的所有照片、操作紀錄，並釋放其佔用的庫房架位。
+                此操作無法復原。將一併刪除作品的所有照片、操作紀錄。
                 <br /><br />
                 <span className="font-medium text-foreground">作品編號：</span>{artwork.artworkNo}
                 <br />
@@ -627,36 +654,74 @@ export default function ArtworkEdit({ id }: { id: number }) {
         {/* 庫房位置 */}
         <section className="elegant-card p-5 space-y-4">
           <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">庫房位置 Storage Location</h2>
-          <div className="space-y-1.5">
-            <Label>指定架位（選填）</Label>
-            <Select value={form.locationId || "none"} onValueChange={(v) => setForm((f) => ({ ...f, locationId: v === "none" ? "" : v }))}>
-              <SelectTrigger className="bg-background">
-                <SelectValue placeholder="選擇庫房架位" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">不指定位置</SelectItem>
-                {locations?.map((loc) => {
-                  // 編輯時：當前作品的位置可選，其他已佔用的位置不可選
-                  const isCurrent = loc.id === artwork.locationId;
-                  const disabled = loc.isOccupied === 1 && !isCurrent;
-                  return (
-                    <SelectItem key={loc.id} value={String(loc.id)} disabled={disabled}>
-                      <span className="font-mono mr-2">{loc.locationCode}</span>
-                      {loc.description && <span className="text-muted-foreground text-xs">{loc.description}</span>}
-                      {isCurrent && <span className="text-muted-foreground text-xs ml-1">（當前位置）</span>}
-                      {disabled && <span className="text-muted-foreground text-xs ml-1">（已佔用）</span>}
+          <div className="space-y-3">
+            <Label>指定架位（選填，可重複選擇）</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* 第 1 階：庫房編號 */}
+              <Select
+                value={form.selectedWarehouseNo || "none"}
+                onValueChange={(v) => setForm((f) => ({ ...f, selectedWarehouseNo: v === "none" ? "" : v, selectedZone: "", selectedShelfId: "" }))}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="庫房編號" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">不指定</SelectItem>
+                  {warehouseOptions.map((w) => (
+                    <SelectItem key={w} value={w}>
+                      <span className="font-mono">{w}</span>
                     </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 第 2 階：分區 */}
+              <Select
+                value={form.selectedZone || "none"}
+                onValueChange={(v) => setForm((f) => ({ ...f, selectedZone: v === "none" ? "" : v, selectedShelfId: "" }))}
+                disabled={!form.selectedWarehouseNo}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="分區" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">不指定</SelectItem>
+                  {zoneOptions.map((z) => (
+                    <SelectItem key={z} value={z}>
+                      <span className="font-mono">{z} 區</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* 第 3 階：層架編號 */}
+              <Select
+                value={form.selectedShelfId || "none"}
+                onValueChange={(v) => setForm((f) => ({ ...f, selectedShelfId: v === "none" ? "" : v }))}
+                disabled={!form.selectedWarehouseNo || !form.selectedZone}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="層架編號" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">不指定</SelectItem>
+                  {shelfOptions.map((loc) => (
+                    <SelectItem key={loc.id} value={String(loc.id)}>
+                      <span className="font-mono mr-2">{loc.shelfNo.padStart(2, "0")}</span>
+                      {loc.description && <span className="text-muted-foreground text-xs">{loc.description}</span>}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground">同一架位可被多件作品指定，無「已佔用」限制。</p>
           </div>
           {selectedLocation && (
             <div className="flex items-center gap-2 p-3 bg-accent/50 rounded-lg">
               <MapPin className="w-4 h-4 text-primary shrink-0" />
               <div>
                 <p className="text-sm font-mono font-medium">{selectedLocation.locationCode}</p>
-                <p className="text-xs text-muted-foreground">{selectedLocation.warehouseNo} 號庫房・{selectedLocation.zone} 區・第 {selectedLocation.shelfNo} 架・第 {selectedLocation.levelNo} 層</p>
+                <p className="text-xs text-muted-foreground">{selectedLocation.warehouseNo} 號庫房・{selectedLocation.zone} 區・第 {selectedLocation.shelfNo} 架</p>
               </div>
             </div>
           )}

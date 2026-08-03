@@ -73,13 +73,12 @@ CREATE TABLE `storage_locations` (
 	`warehouseNo` varchar(16) NOT NULL,
 	`zone` varchar(4) NOT NULL,
 	`shelfNo` varchar(4) NOT NULL,
-	`levelNo` varchar(4) NOT NULL,
 	`locationCode` varchar(32) NOT NULL,
 	`description` text,
-	`isOccupied` int NOT NULL DEFAULT 0,
 	`createdAt` timestamp NOT NULL DEFAULT (now()),
 	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
-	CONSTRAINT `storage_locations_id` PRIMARY KEY(`id`)
+	CONSTRAINT `storage_locations_id` PRIMARY KEY(`id`),
+	CONSTRAINT `storage_locations_locationCode_unique` UNIQUE(`locationCode`)
 );
 --> statement-breakpoint
 CREATE TABLE `users` (

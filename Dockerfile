@@ -31,7 +31,11 @@ FROM node:22-slim AS runtime
 
 # 安裝 dumb-init（正確處理 PID 1 信號）+ 中文字型（PDF 備用）
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends dumb-init && \
+    apt-get install -y --no-install-recommends \
+      dumb-init \
+      fonts-noto-cjk \
+      fontconfig && \
+    fc-cache -fv && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

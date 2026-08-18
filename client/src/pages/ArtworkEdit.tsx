@@ -301,7 +301,7 @@ export default function ArtworkEdit({ id }: { id: number }) {
       artist: form.artist || undefined,
       collector: form.collector || undefined,
       customCode: form.customCode || undefined,
-      medium: (form.medium as "canvas" | "paper" | "wood" | "metal" | "textile" | "mixed" | "") || undefined,
+      medium: (form.medium as "canvas" | "paper" | "wood" | "metal" | "textile" | "ceramic" | "fiberglass" | "mixed" | "") || undefined,
       entryDate: form.entryDate || undefined,
       era: form.era || undefined,
       registrar: form.registrar || undefined,

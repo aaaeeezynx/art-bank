@@ -37,7 +37,7 @@ CREATE TABLE `artworks` (
 	`titleNotProvided` tinyint NOT NULL DEFAULT 0,
 	`artist` varchar(128) NOT NULL,
 	`collector` varchar(128),
-	`medium` enum('canvas','paper','wood','metal','textile','mixed') NOT NULL,
+	`medium` enum('canvas','paper','wood','metal','textile','ceramic','fiberglass','mixed') NOT NULL,
 	`mediumCode` varchar(4) NOT NULL,
 	`status` enum('在庫','出庫','暫放','借展','修護') NOT NULL DEFAULT '在庫',
 	`locationId` int,

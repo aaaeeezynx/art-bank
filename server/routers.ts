@@ -104,7 +104,7 @@ const artworkRouter = router({
         artist: z.string().min(1),
         collector: z.string().optional(),
         customCode: z.string().optional(),
-        medium: z.enum(["canvas", "paper", "wood", "metal", "textile", "mixed"]),
+        medium: z.enum(["canvas", "paper", "wood", "metal", "textile", "ceramic", "fiberglass", "mixed"]),
         entryDate: z.string(),
         era: z.string().optional(),
         registrar: z.string().optional(),

@@ -47,6 +47,8 @@ export const MEDIUM_CODES = {
   wood: "WW",
   metal: "MW",
   textile: "TW",
+  ceramic: "CE",
+  fiberglass: "FG",
   mixed: "MM",
 } as const;
 

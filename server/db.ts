@@ -121,6 +121,8 @@ const MEDIUM_CODES: Record<MediumType, string> = {
   wood: "WW",
   metal: "MW",
   textile: "TW",
+  ceramic: "CE",
+  fiberglass: "FG",
   mixed: "MM",
 };
 

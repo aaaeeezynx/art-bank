@@ -257,7 +257,7 @@
         },
         "medium": {
           "name": "medium",
-          "type": "enum('canvas','paper','wood','metal','textile','mixed')",
+          "type": "enum('canvas','paper','wood','metal','textile','ceramic','fiberglass','mixed')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false

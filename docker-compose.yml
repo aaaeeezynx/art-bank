@@ -45,7 +45,8 @@ services:
     container_name: artbank-app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # 明確綁定 IPv4（避免 Docker Desktop 產生壞掉的 IPv6 [::] 綁定導致 localhost 連線逾時）
+      - "0.0.0.0:3000:3000"
     environment:
       NODE_ENV: production
       PORT: 3000

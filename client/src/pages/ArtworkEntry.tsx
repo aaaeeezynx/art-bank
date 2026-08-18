@@ -22,6 +22,8 @@ export const MEDIUM_OPTIONS = [
   { value: "wood", label: "木質作品", code: "WW" },
   { value: "metal", label: "金屬作品", code: "MW" },
   { value: "textile", label: "織品作品", code: "TW" },
+  { value: "ceramic", label: "陶瓷作品", code: "CE" },
+  { value: "fiberglass", label: "玻璃纖維作品", code: "FG" },
   { value: "mixed", label: "複合媒材", code: "MM" },
 ];
 

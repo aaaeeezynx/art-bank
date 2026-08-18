@@ -639,14 +639,11 @@ export async function generateWord(artwork: ArtworkWithPhotos): Promise<Buffer> 
         sectionXml = checkOption(sectionXml, opt.label);
       }
     }
-    documentXml = documentXml.substring(0, startIdx) + sectionXml + documentXml.substring(endIdx);
-
-    // 替換備註 Note（目前是空格）
+    // 替換備註 Note
     if (note) {
-      // 找到 section 的備註行並填入
-      // 備註行的 pattern: "備註Note：" 後面有空格的 cell
-      // 這部分較難精確替換，暫時在備註後面找空格替換
+      sectionXml = replaceValueAfterLabel(sectionXml, "備註Note：", note);
     }
+    documentXml = documentXml.substring(0, startIdx) + sectionXml + documentXml.substring(endIdx);
   }
 
   // ── 處理照片（分為作品照片和狀態照片）──

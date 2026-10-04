@@ -14,6 +14,28 @@
   - 作品清單 PDF（勾選作品後匯出表格，含縮圖、名稱、作者、狀態、時間）
 - **儀表板**：在庫/出庫統計、近期操作紀錄
 
+## 介面預覽
+
+### 首頁儀表板
+<p align="center">
+  <img src="assets/screenshots/01-dashboard.png" width="800" alt="首頁儀表板：在庫/出庫統計、近期操作紀錄">
+</p>
+
+### 作品列表
+<p align="center">
+  <img src="assets/screenshots/02-artwork-list.png" width="800" alt="典藏作品列表：搜尋、篩選、縮圖">
+</p>
+
+### 作品詳情
+<p align="center">
+  <img src="assets/screenshots/03-artwork-detail.png" width="800" alt="作品詳情：一般資料、典藏品現狀、照片、操作按鈕">
+</p>
+
+### 庫房管理
+<p align="center">
+  <img src="assets/screenshots/04-storage.png" width="800" alt="庫房位置管理：庫房、區、架位">
+</p>
+
 ## 技術棧
 
 | 領域 | 技術 |
